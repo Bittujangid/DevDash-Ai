@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevDash AI – Developer Productivity Dashboard</title>
+    
+    <!-- Meta tags for basic SEO -->
+    <meta name="description" content="Manage daily coding goals, save learning resources, edit your developer profile, and chat with an advanced AI coding assistant using Google Gemini API.">
+    <meta name="keywords" content="developer dashboard, productivity, coding goals, gemini api, flask, developer profile, learning manager">
+    
+    <!-- FontAwesome for Premium Modern Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    <!-- Prism.js Tomorrow Night Theme for Premium Dark Theme Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+
+    <!-- Dynamic Alert Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Sidebar overlay backdrop for Mobile navigation drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <div class="app-container">
+        
+        <!-- ===================================================================
+             1. USER AUTHENTICATION SECTION (Login & Registration)
+             =================================================================== -->
+        <div id="auth-view" class="auth-page">
+            <div class="glass-panel auth-card">
+                
+                <div class="auth-header">
+                    <div class="auth-logo"><i class="fa-solid fa-square-terminal brand-text"></i> <span class="brand-text">DevDash AI</span></div>
+                    <p id="auth-subtitle" class="auth-subtitle">Welcome! Log in to access your custom developer workspace.</p>
+                </div>
+                
+                <!-- Registration Form -->
+                <form id="register-form" class="hidden">
+                    <div class="input-group">
+                        <label class="input-label" for="reg-username">Username</label>
+                        <input class="input-field" type="text" id="reg-username" placeholder="e.g., codeninja" required autocomplete="username">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label" for="reg-email">Email Address</label>
+                        <input class="input-field" type="email" id="reg-email" placeholder="e.g., dev@domain.com" required autocomplete="email">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label" for="reg-password">Password</label>
+                        <input class="input-field" type="password" id="reg-password" placeholder="At least 8 characters" required autocomplete="new-password">
+                    </div>
+                    <button class="btn btn-primary" type="submit" style="width: 100%; margin-top: 10px;">
+                        <span>Register Workspace</span>
+                    </button>
+                </form>
+
+                <!-- Login Form -->
+                <form id="login-form">
+                    <div class="input-group">
+                        <label class="input-label" for="login-username">Username or Email</label>
+                        <input class="input-field" type="text" id="login-username" placeholder="Enter username or email" required autocomplete="username">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label" for="login-password">Password</label>
+                        <input class="input-field" type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                    <button class="btn btn-primary" type="submit" style="width: 100%; margin-top: 10px;">
+                        <span>Unlock Workspace</span>
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <span id="auth-footer-text">Don't have an account?</span>
+                    <span id="auth-toggle" class="auth-toggle-link">Register</span>
+                </div>
+                
+            </div>
+        </div>
+
+        <!-- ===================================================================
+             2. MAIN DEVELOPER PRODUCTIVITY DASHBOARD PANEL
+             =================================================================== -->
+        <div id="dashboard-view" class="dashboard-layout hidden">
+            
+            <!-- Mobile Navigation Header Bar -->
+            <header class="mobile-header" id="mobile-header">
+                <button class="menu-toggle-btn" id="menu-toggle-btn" title="Toggle Menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="mobile-logo" id="mobile-logo-home" style="cursor: pointer;">
+                    <i class="fa-solid fa-square-terminal brand-text"></i>
+                    <span class="brand-text">DevDash AI</span>
+                </div>
+                <div class="user-avatar" id="mobile-avatar" style="cursor: pointer; width: 34px; height: 34px; font-size: 0.95rem;">U</div>
+            </header>
+
+            <!-- Side Navigation Bar -->
+            <aside class="sidebar" id="sidebar">
+                <div>
+                    <div class="sidebar-brand-wrapper">
+                        <div class="sidebar-logo" id="sidebar-logo-home" style="cursor: pointer;">
+                            <i class="fa-solid fa-square-terminal brand-text"></i>
+                            <span class="brand-text sidebar-fade-target">DevDash AI</span>
+                        </div>
+                        <button class="sidebar-toggle-btn" id="sidebar-collapse-toggle" title="Toggle Sidebar">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                    </div>
+                    
+                    <nav class="sidebar-nav">
+                        <div class="nav-item active" data-target="overview-panel" id="nav-overview" data-tooltip="Dashboard">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            <span class="sidebar-fade-target">Dashboard</span>
+                        </div>
+                        <div class="nav-item" data-target="goals-panel" id="nav-goals" data-tooltip="Goals">
+                            <i class="fa-solid fa-list-check"></i>
+                            <span class="sidebar-fade-target">Goals</span>
+                        </div>
+                        <div class="nav-item" data-target="resources-panel" id="nav-resources" data-tooltip="Resources">
+                            <i class="fa-solid fa-book-bookmark"></i>
+                            <span class="sidebar-fade-target">Resources</span>
+                        </div>
+                        <div class="nav-item" data-target="chat-panel" id="nav-chat" data-tooltip="AI Assistant">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span class="sidebar-fade-target">AI Assistant</span>
+                        </div>
+                        <div class="nav-item" data-target="profile-panel" id="nav-profile" data-tooltip="Profile">
+                            <i class="fa-solid fa-user-gear"></i>
+                            <span class="sidebar-fade-target">Profile</span>
+                        </div>
+                        <div class="nav-item" data-target="settings-panel" id="nav-settings" data-tooltip="Settings">
+                            <i class="fa-solid fa-sliders"></i>
+                            <span class="sidebar-fade-target">Settings</span>
+                        </div>
+                        <div class="nav-item" id="nav-logout" data-tooltip="Logout">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span class="sidebar-fade-target">Logout</span>
+                        </div>
+                    </nav>
+                </div>
+                
+                <!-- Bottom Logged-in User Profile Capsule -->
+                <div class="sidebar-user">
+                    <div class="user-avatar" id="sidebar-avatar">U</div>
+                    <div class="user-info sidebar-fade-target">
+                        <div class="user-name" id="sidebar-username">Username</div>
+                        <div class="user-role">Developer Workspace</div>
+                    </div>
+                    <button class="btn-icon sidebar-fade-target" id="logout-btn" title="Log out Workspace">
+                        <i class="fa-solid fa-power-off"></i>
+                    </button>
+                </div>
+            </aside>
+            
+            <!-- Main Content panel -->
+            <main class="main-content">
+                
+                <!-- Dashboard Section Header -->
+                <div class="content-header">
+                    <div>
+                        <h1 class="content-title" id="panel-title">Developer Workspace</h1>
+                        <p class="content-subtitle" id="panel-subtitle">Welcome back to your productivity suite.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary btn-icon" id="refresh-stats-btn" title="Refresh Dashboard Stats">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- DYNAMIC CONTENT CHUNKS (Toggled in SPA via JS) -->
+                
+                <!-- ==========================================
+                     2.1 PANEL: Overview Dashboard Stats
+                     ========================================== -->
+                <div id="overview-panel" class="view-panel">
+                    
+                    <!-- Premium SaaS Personalized Hero Banner -->
+                    <div class="hero-card">
+                        <div class="hero-card-glow"></div>
+                        <div class="hero-card-content">
+                            <h2 class="hero-greeting"><span id="hero-greeting">Good Morning</span>, <span id="hero-username" class="gradient-text">Developer</span> 👋</h2>
+                            <p class="hero-subtitle">Ready to build something amazing today?</p>
+                            <div class="hero-actions">
+                                <button class="btn btn-primary btn-hero-action" onclick="app.switchTab('goals-panel')">
+                                    <i class="fa-solid fa-circle-plus"></i> Add Goal
+                                </button>
+                                <button class="btn btn-secondary btn-hero-action" onclick="app.switchTab('chat-panel')">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> Open AI Assistant
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feature 6: Dashboard Statistics Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-card-content">
+                                <span class="stat-label">Total Goals</span>
+                                <div class="stat-value-wrapper">
+                                    <span class="stat-value" id="stats-total-goals">0</span>
+                                    <span class="stat-trend trend-up"><i class="fa-solid fa-arrow-up-long"></i> Active</span>
+                                </div>
+                            </div>
+                            <div class="stat-icon-wrapper val-violet">
+                                <i class="fa-solid fa-circle-nodes"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-card-content">
+                                <span class="stat-label">Completed</span>
+                                <div class="stat-value-wrapper">
+                                    <span class="stat-value" id="stats-completed-goals" style="color: var(--color-success);">0</span>
+                                    <span class="stat-trend trend-success"><i class="fa-solid fa-circle-check"></i> Done</span>
+                                </div>
+                            </div>
+                            <div class="stat-icon-wrapper val-success">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-card-content">
+                                <span class="stat-label">Pending</span>
+                                <div class="stat-value-wrapper">
+                                    <span class="stat-value" id="stats-pending-goals" style="color: var(--color-warning);">0</span>
+                                    <span class="stat-trend trend-warning"><i class="fa-solid fa-hourglass-half"></i> Pending</span>
+                                </div>
+                            </div>
+                            <div class="stat-icon-wrapper val-warning">
+                                <i class="fa-solid fa-hourglass-half"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-card-content">
+                                <span class="stat-label">Saved Resources</span>
+                                <div class="stat-value-wrapper">
+                                    <span class="stat-value" id="stats-saved-resources" style="color: var(--accent-cyan);">0</span>
+                                    <span class="stat-trend trend-info"><i class="fa-solid fa-arrow-trend-up"></i> Curated</span>
+                                </div>
+                            </div>
+                            <div class="stat-icon-wrapper val-info">
+                                <i class="fa-solid fa-book-bookmark"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gemini AI Quick Start Prompts -->
+                    <h3 style="font-size: 1.2rem; margin-bottom: 15px;">Ask Gemini AI Coding assistant immediately:</h3>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 30px;">
+                        <div class="glass-panel interactive" style="padding: 16px 20px; flex: 1; min-width: 240px; cursor: pointer;" onclick="app.chatQuickPrompt('Explain Binary Search')">
+                            <h4 style="font-size: 0.95rem; margin-bottom: 6px; color: var(--accent-cyan);"><i class="fa-solid fa-magnifying-glass" style="margin-right: 6px;"></i> Algorithm Analysis</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">"Explain Binary Search in plain terms and supply a Python example."</p>
+                        </div>
+                        <div class="glass-panel interactive" style="padding: 16px 20px; flex: 1; min-width: 240px; cursor: pointer;" onclick="app.chatQuickPrompt('Explain SQL Joins with an example')">
+                            <h4 style="font-size: 0.95rem; margin-bottom: 6px; color: var(--accent-violet);"><i class="fa-solid fa-database" style="margin-right: 6px;"></i> SQL Databases</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">"Explain INNER vs LEFT vs RIGHT Joins with dynamic examples."</p>
+                        </div>
+                        <div class="glass-panel interactive" style="padding: 16px 20px; flex: 1; min-width: 240px; cursor: pointer;" onclick="app.chatQuickPrompt('Show me basic Flask Routing code')">
+                            <h4 style="font-size: 0.95rem; margin-bottom: 6px; color: #10b981;"><i class="fa-solid fa-pepper-hot" style="margin-right: 6px;"></i> Flask REST APIs</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">"Explain how routes, request args, and json response parameters behave in Flask."</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                     2.2 PANEL: Coding Goals CRUD Manager
+                     ========================================== -->
+                <div id="goals-panel" class="view-panel hidden">
+                    <!-- Home Back Navigation Link -->
+                    <a href="#" onclick="app.switchTab('overview-panel'); return false;" class="btn btn-secondary" style="font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px; padding: 6px 14px;">
+                        <i class="fa-solid fa-chevron-left"></i> Back to Home
+                    </a>
+
+                    <div class="goals-container">
+                        <!-- Quick Add Goal Panel -->
+                        <div class="glass-panel quick-add-panel">
+                            <form id="add-goal-form" class="inline-form">
+                                <div class="input-group">
+                                    <label class="input-label" for="goal-title-input">Goal Title</label>
+                                    <input class="input-field" type="text" id="goal-title-input" placeholder="e.g., Solve 2 LeetCode Problems" required>
+                                </div>
+                                <div class="input-group" style="max-width: 180px;">
+                                    <label class="input-label" for="goal-priority-input">Priority</label>
+                                    <select class="select-field" id="goal-priority-input">
+                                        <option value="Low">Low Priority</option>
+                                        <option value="Medium" selected>Medium Priority</option>
+                                        <option value="High">High Priority</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary" type="submit" style="height: 50px;">
+                                    <i class="fa-solid fa-plus" style="margin-right: 6px;"></i> Add Goal
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Goals Listing Panel -->
+                        <div class="glass-panel" style="padding: 24px;">
+                            <h3 style="font-size: 1.2rem; margin-bottom: 20px;">Daily Checklist</h3>
+                            <div id="goals-list-container" class="goals-list">
+                                <!-- Dynamic Goal Items are rendered here -->
+                                <div class="empty-state">
+                                    <i class="fa-solid fa-list-check"></i>
+                                    <p>No coding goals set for today. Let's create your first task above!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                     2.3 PANEL: Saved Learning Resources Manager
+                     ========================================== -->
+                <div id="resources-panel" class="view-panel hidden">
+                    <!-- Home Back Navigation Link -->
+                    <a href="#" onclick="app.switchTab('overview-panel'); return false;" class="btn btn-secondary" style="font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px; padding: 6px 14px;">
+                        <i class="fa-solid fa-chevron-left"></i> Back to Home
+                    </a>
+
+                    <!-- Category Filter & Search Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                        <h3 style="font-size: 1.25rem;">Learning Materials & Bookmarks</h3>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label class="input-label" for="res-filter-category" style="margin-bottom: 0;">Filter Category:</label>
+                            <select class="select-field" id="res-filter-category" style="padding: 8px 12px; font-size: 0.85rem;" onchange="app.filterResources(this.value)">
+                                <option value="All" selected>All Categories</option>
+                                <option value="Documentation">Documentation</option>
+                                <option value="Article">Article / Blog</option>
+                                <option value="Course">Online Course</option>
+                                <option value="YouTube">YouTube Video</option>
+                                <option value="Other">Other / Code</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" id="open-add-resource-modal">
+                            <i class="fa-solid fa-bookmark" style="margin-right: 8px;"></i> Save Resource
+                        </button>
+                    </div>
+
+                    <!-- Resources Grid Container -->
+                    <div id="resources-grid-container" class="resources-grid">
+                        <!-- Dynamic Resource Cards are rendered here -->
+                        <div class="glass-panel" style="grid-column: 1 / -1; padding: 40px; text-align: center; color: var(--text-muted);">
+                            <i class="fa-solid fa-book-bookmark" style="font-size: 3rem; opacity: 0.3; margin-bottom: 15px;"></i>
+                            <p>No saved resources found. Bookmark documentation, YouTube courses, and helpful blogs above!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                     2.4 PANEL: AI Chat Coding Assistant
+                     ========================================== -->
+                <div id="chat-panel" class="view-panel hidden">
+                    
+                    <!-- Compact Top Navigation Bar -->
+                    <div class="chat-top-nav">
+                        <button class="chat-menu-btn" id="chat-menu-btn" title="Toggle Navigation">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div class="chat-top-title">
+                            <i class="fa-solid fa-square-terminal brand-text"></i>
+                            <span class="brand-text">DevDash AI</span>
+                        </div>
+                        <div class="chat-top-actions">
+                            <button class="chat-action-btn" id="clear-chat-btn" title="Clear Chat Messages">
+                                <i class="fa-solid fa-trash-can"></i>
+                                <span>Clear</span>
+                            </button>
+                            <button class="chat-action-btn" id="refresh-chat-btn" title="Refresh Chat Session">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                                <span>Refresh</span>
+                            </button>
+                            <div class="user-avatar compact-avatar" id="chat-user-avatar">U</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel chat-layout">
+                        
+                        <!-- Chat message list container -->
+                        <div id="chat-messages-container" class="chat-messages">
+                            <!-- Welcoming System Message -->
+                            <div class="chat-bubble ai">
+                                <h3 style="font-size: 1.05rem; margin-bottom: 8px;"><i class="fa-solid fa-square-terminal brand-text" style="margin-right: 6px;"></i> DevDash AI Assistant</h3>
+                                <p>Hi there! I am your AI coding assistant, backed by Google Gemini. Ask me any programming questions, let's debug a code block, map out a learning roadmap, or analyze data structures.</p>
+                            </div>
+                        </div>
+
+                        <!-- Text Input Bar -->
+                        <form id="chat-form" class="chat-input-bar">
+                            <div class="chat-input-wrapper">
+                                <textarea id="chat-message-input" placeholder="Ask a programming question... (Enter to send, Shift+Enter for new line)" required autocomplete="off" rows="1"></textarea>
+                                <button class="chat-send-btn" type="submit" title="Send Message">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                        
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                     2.5 PANEL: Profile Customization Section
+                     ========================================== -->
+                <div id="profile-panel" class="view-panel hidden">
+                    <!-- Home Back Navigation Link -->
+                    <a href="#" onclick="app.switchTab('overview-panel'); return false;" class="btn btn-secondary" style="font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px; padding: 6px 14px;">
+                        <i class="fa-solid fa-chevron-left"></i> Back to Home
+                    </a>
+
+                    <div class="glass-panel profile-card">
+                        <div class="profile-layout-grid">
+                            
+                            <!-- Left: Interactive Profile Capsule -->
+                            <div class="profile-avatar-sec">
+                                <div class="profile-avatar-large" id="profile-avatar-placeholder">U</div>
+                                <div style="text-align: center;">
+                                    <h3 id="profile-card-username" style="font-size: 1.25rem;">Developer</h3>
+                                    <div id="profile-card-role" style="font-size: 0.85rem; color: var(--accent-cyan); font-weight: 500; margin-bottom: 4px; margin-top: 2px;">Developer Workspace</div>
+                                    <span id="profile-card-email" style="font-size: 0.85rem; color: var(--text-muted);">developer@devdash.ai</span>
+                                </div>
+                                <p class="profile-bio-text" id="profile-card-bio">No developer bio provided. Write a short paragraph on what you're currently building!</p>
+                                
+                                <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px; width: 100%;" class="profile-socials">
+                                    <div id="profile-card-github-sec" class="hidden" style="width: 100%;">
+                                        <a href="#" target="_blank" id="profile-card-github-link" class="btn btn-secondary" style="font-size: 0.85rem; gap: 8px; width: 100%; display: flex; justify-content: center; align-items: center;">
+                                            <i class="fa-brands fa-github"></i> github-profile
+                                        </a>
+                                    </div>
+                                    <div id="profile-card-linkedin-sec" class="hidden" style="width: 100%;">
+                                        <a href="#" target="_blank" id="profile-card-linkedin-link" class="btn btn-secondary" style="font-size: 0.85rem; gap: 8px; width: 100%; display: flex; justify-content: center; align-items: center;">
+                                            <i class="fa-brands fa-linkedin"></i> linkedin-profile
+                                        </a>
+                                    </div>
+                                    <div id="profile-card-portfolio-sec" class="hidden" style="width: 100%;">
+                                        <a href="#" target="_blank" id="profile-card-portfolio-link" class="btn btn-secondary" style="font-size: 0.85rem; gap: 8px; width: 100%; display: flex; justify-content: center; align-items: center;">
+                                            <i class="fa-solid fa-globe"></i> portfolio-website
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Customizable Profile Fields -->
+                            <form id="profile-form">
+                                <h3 style="font-size: 1.2rem; margin-bottom: 20px; border-bottom: 1px solid var(--border-glass); padding-bottom: 10px;">Customize Profile</h3>
+                                
+                                <div class="profile-form-grid">
+                                    <div class="input-group">
+                                        <label class="input-label" for="profile-username">Username</label>
+                                        <input class="input-field" type="text" id="profile-username" required autocomplete="username">
+                                    </div>
+                                    <div class="input-group">
+                                        <label class="input-label" for="profile-email">Email Address</label>
+                                        <input class="input-field" type="email" id="profile-email" required autocomplete="email">
+                                    </div>
+                                    <div class="input-group">
+                                        <label class="input-label" for="profile-role">Professional Role</label>
+                                        <input class="input-field" type="text" id="profile-role" placeholder="e.g., Full-Stack Engineer">
+                                    </div>
+                                    <div class="input-group">
+                                        <label class="input-label" for="profile-github-username">GitHub Username</label>
+                                        <input class="input-field" type="text" id="profile-github-username" placeholder="e.g., octocat">
+                                    </div>
+                                    <div class="input-group">
+                                        <label class="input-label" for="profile-github-link">GitHub Profile Link</label>
+                                        <input class="input-field" type="url" id="profile-github-link" placeholder="e.g., https://github.com/octocat">
+                                    </div>
+                                    <div class="input-group">
+                                        <label class="input-label" for="profile-linkedin-link">LinkedIn Profile Link</label>
+                                        <input class="input-field" type="url" id="profile-linkedin-link" placeholder="e.g., https://linkedin.com/in/octocat">
+                                    </div>
+                                    <div class="input-group full-width">
+                                        <label class="input-label" for="profile-portfolio-link">Portfolio Website Link</label>
+                                        <input class="input-field" type="url" id="profile-portfolio-link" placeholder="e.g., https://octocat.dev">
+                                    </div>
+                                    <div class="input-group full-width">
+                                        <label class="input-label" for="profile-bio">Bio / About Me</label>
+                                        <textarea class="input-field" id="profile-bio" rows="4" placeholder="Briefly describe your programming focus, tech stack, and goals..." style="font-family: inherit; resize: none;"></textarea>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-primary" type="submit" style="margin-top: 10px;">
+                                    <i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i> Save Profile Details
+                                </button>
+                            </form>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                     2.6 PANEL: Dedicated Settings Center
+                     ========================================== -->
+                <div id="settings-panel" class="view-panel hidden">
+                    <!-- Home Back Navigation Link -->
+                    <a href="#" onclick="app.switchTab('overview-panel'); return false;" class="btn btn-secondary" style="font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px; padding: 6px 14px;">
+                        <i class="fa-solid fa-chevron-left"></i> Back to Home
+                    </a>
+
+                    <div class="settings-grid">
+                        
+                        <!-- 1. Appearance Card -->
+                        <div class="glass-panel settings-card">
+                            <div class="settings-card-header">
+                                <i class="fa-solid fa-palette"></i>
+                                <div>
+                                    <h3 class="settings-card-title">Appearance</h3>
+                                    <p class="settings-card-subtitle">Personalize your DevDash AI application theme.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-card-body">
+                                <div class="input-group" style="margin-bottom: 0;">
+                                    <label class="input-label" for="settings-theme">Application Theme</label>
+                                    <select class="select-field" id="settings-theme" onchange="app.saveSettings()">
+                                        <option value="dark">Dark Theme (Midnight)</option>
+                                        <option value="light">Light Theme (Minimalist)</option>
+                                        <option value="system">System Default</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Workspace Preferences Card -->
+                        <div class="glass-panel settings-card">
+                            <div class="settings-card-header">
+                                <i class="fa-solid fa-laptop-code"></i>
+                                <div>
+                                    <h3 class="settings-card-title">Workspace Preferences</h3>
+                                    <p class="settings-card-subtitle">Configure dashboard headers and sidebars.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-card-body">
+                                <div class="toggle-setting-row">
+                                    <div class="toggle-setting-info">
+                                        <div class="toggle-setting-title">Show Welcome Banner</div>
+                                        <div class="toggle-setting-desc">Display the personalized developer greetings card in your main workspace.</div>
+                                    </div>
+                                    <label class="switch-control">
+                                        <input type="checkbox" id="settings-show-banner" onchange="app.saveSettings()">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                
+                                <div class="toggle-setting-row">
+                                    <div class="toggle-setting-info">
+                                        <div class="toggle-setting-title">Show Quick Actions</div>
+                                        <div class="toggle-setting-desc">Enable shortcuts ("Add Goal", "Open AI Assistant") inside the welcome banner.</div>
+                                    </div>
+                                    <label class="switch-control">
+                                        <input type="checkbox" id="settings-show-actions" onchange="app.saveSettings()">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                
+                                <div class="toggle-setting-row">
+                                    <div class="toggle-setting-info">
+                                        <div class="toggle-setting-title">Sidebar Animations</div>
+                                        <div class="toggle-setting-desc">Enable slide and collapse transitions for the main navigation.</div>
+                                    </div>
+                                    <label class="switch-control">
+                                        <input type="checkbox" id="settings-sidebar-animation" onchange="app.saveSettings()">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Security Settings Card -->
+                        <div class="glass-panel settings-card">
+                            <div class="settings-card-header">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <div>
+                                    <h3 class="settings-card-title">Security Settings</h3>
+                                    <p class="settings-card-subtitle">Manage authorization passwords and alerts.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-card-body">
+                                <form id="settings-password-form" onsubmit="app.handleChangePassword(event)">
+                                    <div class="input-group">
+                                        <label class="input-label" for="settings-current-pass">Current Password</label>
+                                        <input class="input-field" type="password" id="settings-current-pass" placeholder="••••••••" required autocomplete="current-password">
+                                    </div>
+                                    <div class="input-group">
+                                        <label class="input-label" for="settings-new-pass">New Password</label>
+                                        <input class="input-field" type="password" id="settings-new-pass" placeholder="At least 8 characters" required autocomplete="new-password">
+                                    </div>
+                                    <div class="input-group">
+                                        <label class="input-label" for="settings-confirm-pass">Confirm New Password</label>
+                                        <input class="input-field" type="password" id="settings-confirm-pass" placeholder="••••••••" required autocomplete="new-password">
+                                    </div>
+                                    <button class="btn btn-secondary" type="submit" style="padding: 8px 16px; font-size: 0.85rem; width: 100%;">
+                                        Change Workspace Password
+                                    </button>
+                                </form>
+                                
+                            </div>
+                        </div>
+
+                        <!-- 4. Data Management Card -->
+                        <div class="glass-panel settings-card">
+                            <div class="settings-card-header">
+                                <i class="fa-solid fa-database"></i>
+                                <div>
+                                    <h3 class="settings-card-title">Data Management</h3>
+                                    <p class="settings-card-subtitle">Export documents or perform a workspace wipe.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-card-body">
+                                <div class="data-actions-grid">
+                                    <button class="btn btn-secondary" onclick="app.exportGoals()" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem;">
+                                        <i class="fa-solid fa-file-export"></i> Export Goals (CSV)
+                                    </button>
+                                    
+                                    <button class="btn btn-secondary" onclick="app.exportResources()" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem;">
+                                        <i class="fa-solid fa-file-export"></i> Export Resources (CSV)
+                                    </button>
+                                    
+                                    <button class="btn btn-secondary" onclick="app.clearAIChat()" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem;">
+                                        <i class="fa-solid fa-comment-slash"></i> Clear AI Chat History
+                                    </button>
+                                    
+                                    <button class="btn btn-danger" onclick="app.resetWorkspace()" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; border: 1px solid var(--color-danger); background: rgba(239, 68, 68, 0.1); color: var(--color-danger);">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Reset Workspace Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </main>
+        </div>
+
+    </div>
+
+    <!-- ===================================================================
+         3. MODAL POPUP: ADD LEARNING RESOURCE
+         =================================================================== -->
+    <div id="add-resource-modal" class="modal">
+        <div class="glass-panel modal-content">
+            
+            <div class="modal-header">
+                <h3 style="font-size: 1.25rem;"><i class="fa-solid fa-bookmark" style="color: var(--accent-cyan); margin-right: 8px;"></i> Save Bookmark</h3>
+                <i class="fa-solid fa-xmark modal-close" id="close-add-resource-modal"></i>
+            </div>
+            
+            <form id="add-resource-form">
+                <div class="input-group">
+                    <label class="input-label" for="res-title-input">Resource Title</label>
+                    <input class="input-field" type="text" id="res-title-input" placeholder="e.g., Flask Documentation" required>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label" for="res-url-input">Resource URL</label>
+                    <input class="input-field" type="url" id="res-url-input" placeholder="e.g., https://flask.palletsprojects.com" required>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label" for="res-category-input">Category</label>
+                    <select class="select-field" id="res-category-input">
+                        <option value="Documentation" selected>Documentation</option>
+                        <option value="Article">Article / Blog</option>
+                        <option value="Course">Online Course</option>
+                        <option value="YouTube">YouTube Video</option>
+                        <option value="Other">Other / Code</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label" for="res-desc-input">Description</label>
+                    <textarea class="input-field" id="res-desc-input" rows="3" placeholder="Brief notes about why this resource is useful..." style="font-family: inherit; resize: none;"></textarea>
+                </div>
+                
+                <button class="btn btn-primary" type="submit" style="width: 100%; margin-top: 10px;">
+                    <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> Save to Workspace
+                </button>
+            </form>
+            
+        </div>
+    </div>
+
+    <!-- Marked.js for Premium GFM Markdown Parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Prism.js Core and Language Syntax Highlighting Components -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+
+    <!-- Core App Javascript coordinating AJAX state and Fetch requests -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
