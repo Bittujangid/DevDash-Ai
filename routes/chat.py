@@ -20,6 +20,22 @@ try:
 except Exception as e:
     logger.error(f"Error configuring Google Gemini API: {e}")
 
+SYSTEM_INSTRUCTION = (
+    "You are DevDash AI, an expert programming mentor and DSA coach. "
+    "Respond directly, with zero filler introduction or conclusion, using this structure:\n\n"
+    
+    "1. **Coding Questions**:\n"
+    "   - Provide clean, concise, production-style code block with minimal comments.\n"
+    "   - After code, provide exactly: Approach (2-3 lines), Time Complexity, Space Complexity.\n\n"
+    
+    "2. **DSA Questions**:\n"
+    "   - Provide concise, interviewer-friendly competitive programming solutions.\n"
+    "   - After code, provide exactly: Approach (2-3 lines), Time Complexity, Space Complexity.\n\n"
+    
+    "3. **Conceptual Questions**:\n"
+    "   - Provide focused, direct explanations with comparison tables, workflows, or bullet points."
+)
+
 # High-fidelity simulated offline assistant response helper
 def get_offline_fallback_response(message):
     """Provides structured, high-quality offline developer responses when the Gemini API key is missing or calls fail.
@@ -35,49 +51,28 @@ def get_offline_fallback_response(message):
     
     if "binary search" in msg_lower:
         return offline_notice + (
-            "### 🔍 DSA: Binary Search\n\n"
-            "#### **Algorithm**:\n"
-            "1. Initialize `low = 0` and `high = len(arr) - 1`.\n"
-            "2. While `low <= high`:\n"
-            "   a. Compute the middle index: `mid = low + (high - low) // 2`.\n"
-            "   b. If `arr[mid] == target`, target is found. Return `mid`.\n"
-            "   c. If `arr[mid] > target`, search the left half by setting `high = mid - 1`.\n"
-            "   d. If `arr[mid] < target`, search the right half by setting `low = mid + 1`.\n"
-            "3. If loop ends without finding target, return `-1`.\n\n"
-            
-            "#### **Dry Run**:\n"
-            "Input Array: `arr = [1, 3, 5, 7, 9]`, Target = `7`\n"
-            "- **Iteration 1**: `low = 0`, `high = 4`\n"
-            "  - `mid = 0 + (4 - 0) // 2 = 2`\n"
-            "  - Value at `mid` is `arr[2] = 5`\n"
-            "  - Since `5 < 7`, set `low = mid + 1 = 3`\n"
-            "- **Iteration 2**: `low = 3`, `high = 4`\n"
-            "  - `mid = 3 + (4 - 3) // 2 = 3`\n"
-            "  - Value at `mid` is `arr[3] = 7`\n"
-            "  - Since `7 == 7`, target is found. Return `3`.\n\n"
-            
-            "#### **Complexity Analysis**:\n"
-            "- **Time Complexity**:\n"
-            "  - *Worst Case*: $O(\\log N)$ — array divided in half at each step.\n"
-            "  - *Average Case*: $O(\\log N)$\n"
-            "  - *Best Case*: $O(1)$ — target found at middle element on the first try.\n"
-            "- **Space Complexity**: $O(1)$ — iterative implementation requires constant extra memory.\n\n"
-            
-            "#### **Code Implementation**:\n"
+            "### Code\n"
             "```python\n"
             "def binary_search(arr, target):\n"
-            "    low = 0\n"
-            "    high = len(arr) - 1\n"
+            "    low, high = 0, len(arr) - 1\n"
             "    while low <= high:\n"
             "        mid = low + (high - low) // 2\n"
             "        if arr[mid] == target:\n"
             "            return mid\n"
-            "        elif arr[mid] > target:\n"
-            "            high = mid - 1\n"
-            "        else:\n"
+            "        elif arr[mid] < target:\n"
             "            low = mid + 1\n"
+            "        else:\n"
+            "            high = mid - 1\n"
             "    return -1\n"
-            "```"
+            "```\n\n"
+            "### Approach\n"
+            "Implements the Binary Search algorithm using a two-pointer interval reduction strategy, continuously halving the "
+            "search space by comparing the middle element with the target and narrowing the range to the left or right subarray.\n\n"
+            "### Time Complexity\n"
+            "- **Worst/Average Case**: $O(\\log N)$ — the search space is divided by two at each iteration.\n"
+            "- **Best Case**: $O(1)$ — target found at the middle index on the first step.\n\n"
+            "### Space Complexity\n"
+            "- $O(1)$ — operates iteratively using constant auxiliary space."
         )
     
     elif "flask" in msg_lower or "route" in msg_lower or "routing" in msg_lower:
@@ -173,40 +168,7 @@ def chat():
         # We will use gemini-2.5-flash which is extremely fast and perfect for assistant chats
         model = genai.GenerativeModel(
             model_name='gemini-2.5-flash',
-            system_instruction=(
-                "You are DevDash AI, an expert programming mentor and computer science exam prep assistant. "
-                "Your goal is to provide concise, structured, and exam-friendly responses by default. "
-                "Never include verbose introductory or concluding filler text.\n\n"
-                
-                "Strictly follow these response guidelines based on the query type:\n\n"
-                
-                "1. **ACADEMIC PROGRAMMING QUESTIONS**:\n"
-                "   - Detect if the query is a simple academic programming task (e.g., contains 'WAP', 'write a program', "
-                "     'C++ program', 'Python program', etc.).\n"
-                "   - Return exactly these sections in order:\n"
-                "     * **Program**: The complete program code block. Do NOT include excessive comments inside simple programs.\n"
-                "     * **Sample Input/Output**: Show clear example input(s) and the expected output(s).\n"
-                "     * **Short Explanation**: A very brief and concise explanation of the program logic.\n"
-                "     * **Time Complexity**: Clear and explicit big-O time complexity.\n"
-                "     * **Space Complexity**: Clear and explicit big-O space complexity.\n\n"
-                
-                "2. **DSA (DATA STRUCTURES & ALGORITHMS) QUESTIONS**:\n"
-                "   - Detect if the query asks for a DSA concept, algorithm, or search/sort method (e.g., 'Binary Search', 'Merge Sort', 'BFS', 'DFS').\n"
-                "   - Return exactly these sections in order:\n"
-                "     * **Algorithm**: Clear, step-by-step description of the algorithm.\n"
-                "     * **Dry Run**: A concise, step-by-step trace showing index/variable transitions for a small sample input.\n"
-                "     * **Complexity Analysis**: Time Complexity (explicitly stating Best, Average, Worst cases) and Space Complexity with brief explanations.\n"
-                "     * **Code Implementation**: The complete, clean code block with minimal, essential comments.\n\n"
-                
-                "3. **INTERVIEW & CONCEPTUAL DEVELOPER QUESTIONS**:\n"
-                "   - Detect if the query is an interview or general conceptual developer question (e.g., 'Difference between BFS and DFS', 'Flask Authentication Example').\n"
-                "   - Provide detailed, thorough explanations using bullet points, comparison tables (for differences), blockquotes, and step-by-step structural workflows.\n\n"
-                
-                "4. **DEFAULT CONCISE FORMAT**:\n"
-                "   - For all other queries, create concise, structured, direct, and exam-friendly responses.\n"
-                "   - Always use proper fenced code blocks with language specifiers (e.g., ```cpp, ```python, ```sql).\n"
-                "   - Use GitHub-Flavored Markdown components (bolding, headers, tables, callout blockquotes) beautifully."
-            )
+            system_instruction=SYSTEM_INSTRUCTION
         )
         
         # Request generation
